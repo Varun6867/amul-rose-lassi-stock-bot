@@ -13,8 +13,20 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          curl -v --fail-with-body \
-            -X POST \
+          BOT_TOKEN="$(printf '%s' "$BOT_TOKEN" | tr -d '[:space:]')"
+          CHAT_ID="$(printf '%s' "$CHAT_ID" | tr -d '[:space:]')"
+
+          if ! printf '%s' "$BOT_TOKEN" | grep -Eq '^[0-9]+:[A-Za-z0-9_-]+$'; then
+            echo "ERROR: TELEGRAM_BOT_TOKEN has an invalid format."
+            exit 1
+          fi
+
+          if [ -z "$CHAT_ID" ]; then
+            echo "ERROR: TELEGRAM_CHAT_ID is empty."
+            exit 1
+          fi
+
+          curl --fail-with-body -sS \
             "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${CHAT_ID}" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
             --data-urlencode "text=🟢 Amul Rose Lassi test successful!"
